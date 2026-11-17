@@ -79,6 +79,8 @@ winget install --id=astral-sh.uv -e
    ```bash
    git clone https://github.com/rhito-oss/Crowd_Detection.git
    cd Crowd_Detection
+   uv venv
+   overlay use .venv/bin/activate.nu
    ```
 
 2. **Create virtual environment and install CPU dependencies:**
