@@ -81,10 +81,10 @@ winget install --id=astral-sh.uv -e
    cd Crowd_Detection
 ```
 
-```
+```bash
    uv venv
    overlay use .venv/bin/activate.nu
-   ```
+```
 
 2. **Create virtual environment and install CPU dependencies:**
    
