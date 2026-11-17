@@ -1,0 +1,106 @@
+import sys
+import time
+import cv2
+
+from crowd_detection.config import load_config
+from crowd_detection.density import evaluate_density
+from crowd_detection.detector import PersonDetector
+from crowd_detection.visualizer import draw_hud
+
+
+def main():
+    config = load_config("config.yaml")
+
+    # Select OpenCV video backend
+    backend = cv2.CAP_V4L2 if config.camera.api_preference.lower() == "v4l2" else cv2.CAP_ANY
+
+    print(f"Opening webcam device {config.camera.device_index} (Backend: {config.camera.api_preference})...")
+    cap = cv2.VideoCapture(config.camera.device_index, backend)
+
+    if not cap.isOpened():
+        print(f"Error: Unable to open webcam at index {config.camera.device_index}.", file=sys.stderr)
+        print("Please check camera permissions, connection, or /dev/video* permissions.", file=sys.stderr)
+        sys.exit(1)
+
+    # Set requested resolution & frame rate
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.camera.width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.camera.height)
+    cap.set(cv2.CAP_PROP_FPS, config.camera.fps)
+
+    # Actual negotiated resolution
+    actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    print(f"Webcam initialized successfully ({actual_w}x{actual_h}).")
+
+    print(f"Loading person detector ({config.detection.model} on {config.detection.device})...")
+    detector = PersonDetector(
+        model_name=config.detection.model,
+        conf_threshold=config.detection.conf_threshold,
+        iou_threshold=config.detection.iou_threshold,
+        device=config.detection.device,
+    )
+
+    # Create dedicated display window
+    window_name = config.display.window_name
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL | cv2.WINDOW_GUI_EXPANDED)
+    cv2.resizeWindow(window_name, actual_w, actual_h)
+
+    print("\n-----------------------------------------------------")
+    print(" Live Crowd & Density Detection Running.")
+    print(" Status is evaluated per frame (is_crowded: True/False).")
+    print(" Press 'q' or 'ESC' in the detection window to quit.")
+    print("-----------------------------------------------------\n")
+
+    prev_time = time.time()
+    fps = 0.0
+
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("Warning: Failed to grab frame from webcam. Retrying...", file=sys.stderr)
+                time.sleep(0.05)
+                continue
+
+            h, w = frame.shape[:2]
+
+            # 1. Detect people in current frame
+            detections = detector.detect(frame)
+
+            # 2. Evaluate crowd density & closeness per frame
+            density_result = evaluate_density(detections, w, h, config.density)
+
+            # Calculate FPS
+            curr_time = time.time()
+            time_diff = curr_time - prev_time
+            if time_diff > 0:
+                fps = 0.9 * fps + 0.1 * (1.0 / time_diff) if fps > 0 else (1.0 / time_diff)
+            prev_time = curr_time
+
+            # 3. Render visual HUD, density alerts, and bounding boxes
+            display_frame = draw_hud(frame, detections, density_result, fps, config.display)
+
+            # Display in the opened window
+            cv2.imshow(window_name, display_frame)
+
+            # Check key press ('q' or ESC)
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q') or key == 27:
+                print("Exit signal received. Closing...")
+                break
+
+            # Handle case where user clicked window 'X' close button
+            if cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
+                print("Window closed by user. Exiting...")
+                break
+
+    except KeyboardInterrupt:
+        print("\nInterrupted by user. Exiting...")
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+        print("Webcam released and windows closed.")
+
+
+if __name__ == "__main__":
+    main()
