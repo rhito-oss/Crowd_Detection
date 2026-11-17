@@ -79,22 +79,43 @@ winget install --id=astral-sh.uv -e
    ```bash
    git clone https://github.com/rhito-oss/Crowd_Detection.git
    cd Crowd_Detection
-```
+   ```
 
-```bash
-   uv venv
-   overlay use .venv/bin/activate.nu
-```
+2. **Create virtual environment and activate it:**
 
-2. **Create virtual environment and install CPU dependencies:**
-   
+   - **Linux / macOS (Bash / Zsh):**
+     ```bash
+     uv venv
+     source .venv/bin/activate
+     ```
+
+   - **Linux / macOS (Nushell):**
+     ```nu
+     uv venv
+     overlay use .venv/bin/activate.nu
+     ```
+
+   - **Windows (PowerShell):**
+     ```powershell
+     uv venv
+     .venv\Scripts\Activate.ps1
+     ```
+
+   - **Windows (Command Prompt):**
+     ```cmd
+     uv venv
+     .venv\Scripts\activate.bat
+     ```
+
+3. **Install CPU dependencies:**
+
    - **Linux / macOS:**
      ```bash
      uv pip install --extra-index-url https://download.pytorch.org/whl/cpu torch torchvision
      uv pip install -e .
      ```
-   
-   - **Windows (PowerShell):**
+
+   - **Windows (PowerShell / Command Prompt):**
      ```powershell
      uv pip install --extra-index-url https://download.pytorch.org/whl/cpu torch torchvision
      uv pip install -e .
