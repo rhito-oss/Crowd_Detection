@@ -17,9 +17,9 @@ def main():
         print("Please check camera permissions, connection, or /dev/video* permissions.", file=sys.stderr)
         sys.exit(1)
 
-    # Request standard 16:9 widescreen to unlock the camera sensor's full field of view
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    # Request high resolution; OpenCV and camera drivers automatically negotiate down to the camera's highest native capability
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 
     actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
