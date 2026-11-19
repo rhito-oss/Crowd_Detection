@@ -14,7 +14,7 @@ density:
   min_close_pairs: 2
 
 display:
-  window_name: "Crowd Detection - Person Tracking"
+  window_name: "Crowd Detection"
   show_fps: true
   show_count: true
   show_conf: true
