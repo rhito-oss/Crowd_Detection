@@ -17,13 +17,10 @@ def main():
         print("Please check camera permissions, connection, or /dev/video* permissions.", file=sys.stderr)
         sys.exit(1)
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.camera.width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.camera.height)
-    cap.set(cv2.CAP_PROP_FPS, config.camera.fps)
-
     actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print(f"Webcam initialized successfully ({actual_w}x{actual_h}).")
+    actual_fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"Webcam initialized successfully ({actual_w}x{actual_h} @ {actual_fps:.1f} FPS).")
 
     print(f"Loading person detector ({config.detection.model} on {config.detection.device})...")
     detector = PersonDetector(
