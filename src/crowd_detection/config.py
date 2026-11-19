@@ -9,7 +9,7 @@ class CameraConfig:
     width: int = 1280
     height: int = 720
     fps: int = 30
-    api_preference: str = "v4l2"
+    api_preference: str = "any"
 
 @dataclass
 class DetectionConfig:

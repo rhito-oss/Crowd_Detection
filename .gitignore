@@ -3,6 +3,13 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Models and weights
+weights/
+*.pt
+*.onnx
+*.engine
+*.bin
+
 # C extensions
 *.so
 

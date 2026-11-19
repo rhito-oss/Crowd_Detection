@@ -3,7 +3,7 @@ camera:
   width: 1280
   height: 720
   fps: 30
-  api_preference: "v4l2"
+  api_preference: "any"
 
 detection:
   model: "yolov8n.pt"
@@ -13,12 +13,8 @@ detection:
 
 density:
   enabled: true
-  # Minimum number of detected persons to consider the scene potentially crowded
   min_people_for_crowd: 3
-  # Normalized distance threshold (relative to frame diagonal) between person box centers
-  # When the closest neighbor distance is <= this threshold, people are considered "too close"
   closeness_threshold: 0.15
-  # Minimum number of close pairs or close individuals required to flag is_crowded = True
   min_close_pairs: 2
 
 display:
@@ -27,8 +23,8 @@ display:
   show_count: true
   show_conf: true
   show_density: true
-  box_color: [0, 255, 0]          # BGR: Green (Normal)
-  crowd_box_color: [0, 0, 255]     # BGR: Red when crowded / too close
-  line_color: [0, 0, 255]          # BGR: Red line connecting close people
-  text_color: [255, 255, 255]      # BGR: White
-  badge_color: [40, 40, 40]        # BGR: Dark slate
+  box_color: [0, 255, 0]
+  crowd_box_color: [0, 0, 255]
+  line_color: [0, 0, 255]
+  text_color: [255, 255, 255]
+  badge_color: [40, 40, 40]
