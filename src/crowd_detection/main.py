@@ -8,29 +8,45 @@ from crowd_detection.detector import PersonDetector
 from crowd_detection.visualizer import draw_hud
 
 
-def get_available_camera(preferred_index: int = 0):
-    selected_cap = None
-    selected_idx = -1
+def get_available_camera(preferred_index: int = 0, preferred_api: str = "any"):
+    api_map = {
+        "dshow": cv2.CAP_DSHOW,
+        "msmf": cv2.CAP_MSMF,
+        "any": cv2.CAP_ANY,
+    }
+
+    # On Windows, DirectShow (CAP_DSHOW) is usually much more reliable than MSMF
+    if preferred_api.lower() in api_map:
+        api_backends = [api_map[preferred_api.lower()]]
+    else:
+        api_backends = [cv2.CAP_DSHOW, cv2.CAP_ANY]
+
+    if cv2.CAP_DSHOW not in api_backends and sys.platform.startswith("win"):
+        api_backends.append(cv2.CAP_DSHOW)
+    if cv2.CAP_ANY not in api_backends:
+        api_backends.append(cv2.CAP_ANY)
 
     # Scan available device indices, starting with preferred
     indices = [preferred_index] + [i for i in range(5) if i != preferred_index]
 
-    for idx in indices:
-        cap = cv2.VideoCapture(idx, cv2.CAP_ANY)
-        if cap.isOpened():
-            ret, frame = cap.read()
-            if ret and frame is not None:
-                selected_cap = cap
-                selected_idx = idx
-                break
-        cap.release()
+    for api in api_backends:
+        for idx in indices:
+            cap = cv2.VideoCapture(idx, api)
+            if cap.isOpened():
+                ret, frame = cap.read()
+                if ret and frame is not None and frame.size > 0:
+                    return cap, idx
+            cap.release()
 
-    return selected_cap, selected_idx
+    return None, -1
 
 
 def main():
     config = load_config("config.yaml")
-    cap, device_id = get_available_camera(config.camera.device_index)
+    cap, device_id = get_available_camera(
+        config.camera.device_index,
+        getattr(config.camera, "api_preference", "any"),
+    )
 
     if cap is None:
         print("Error: No available webcam found on any device index.", file=sys.stderr)
@@ -64,8 +80,14 @@ def main():
 
     try:
         while True:
-            ret, frame = cap.read()
-            if not ret or frame is None:
+            try:
+                ret, frame = cap.read()
+            except cv2.error as e:
+                print(f"Warning: OpenCV error during frame capture: {e}", file=sys.stderr)
+                time.sleep(0.05)
+                continue
+
+            if not ret or frame is None or frame.size == 0:
                 print("Warning: Failed to grab frame from webcam. Retrying...", file=sys.stderr)
                 time.sleep(0.05)
                 continue
