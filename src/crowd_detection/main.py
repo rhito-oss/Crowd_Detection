@@ -2,24 +2,27 @@ import sys
 import time
 import cv2
 
+from crowd_detection.audio import AudioAlert
 from crowd_detection.config import load_config
 from crowd_detection.density import evaluate_density
 from crowd_detection.detector import PersonDetector
 from crowd_detection.visualizer import draw_hud
 
 
-def get_available_camera(preferred_index: int = 0, preferred_api: str = "any"):
+def get_available_camera(preferred_index: int = 0, preferred_api: str = "dshow"):
     api_map = {
         "dshow": cv2.CAP_DSHOW,
         "msmf": cv2.CAP_MSMF,
         "any": cv2.CAP_ANY,
     }
 
-    # On Windows, DirectShow (CAP_DSHOW) is usually much more reliable than MSMF
-    if preferred_api.lower() in api_map:
+    # On Windows, DirectShow (CAP_DSHOW) must be prioritized to avoid MSMF step >= minstep crashes
+    if preferred_api.lower() in ("dshow", "default", "any") and sys.platform.startswith("win"):
+        api_backends = [cv2.CAP_DSHOW, cv2.CAP_ANY]
+    elif preferred_api.lower() in api_map:
         api_backends = [api_map[preferred_api.lower()]]
     else:
-        api_backends = [cv2.CAP_DSHOW, cv2.CAP_ANY]
+        api_backends = [cv2.CAP_DSHOW, cv2.CAP_ANY] if sys.platform.startswith("win") else [cv2.CAP_ANY]
 
     if cv2.CAP_DSHOW not in api_backends and sys.platform.startswith("win"):
         api_backends.append(cv2.CAP_DSHOW)
@@ -75,6 +78,12 @@ def main():
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL | cv2.WINDOW_GUI_EXPANDED)
     cv2.resizeWindow(window_name, actual_w, actual_h)
 
+    audio_alert = AudioAlert(
+        audio_file=config.audio.file_path,
+        cooldown=config.audio.cooldown,
+    )
+    crowd_start_time = None
+
     prev_time = time.time()
     fps = 0.0
 
@@ -96,7 +105,16 @@ def main():
             detections = detector.detect(frame)
             density_result = evaluate_density(detections, w, h, config.density)
 
+            # Audio alert with persistence check
             curr_time = time.time()
+            if config.audio.enabled and density_result.is_crowded:
+                if crowd_start_time is None:
+                    crowd_start_time = curr_time
+                elif curr_time - crowd_start_time >= config.audio.persist_duration:
+                    audio_alert.play()
+            else:
+                crowd_start_time = None
+
             time_diff = curr_time - prev_time
             if time_diff > 0:
                 fps = 0.9 * fps + 0.1 * (1.0 / time_diff) if fps > 0 else (1.0 / time_diff)

@@ -26,7 +26,6 @@ class DensityConfig:
     closeness_threshold: float = 0.15
     min_close_pairs: int = 2
 
-
 @dataclass
 class DisplayConfig:
     window_name: str = "Crowd Detection - Person Tracking"
@@ -42,11 +41,20 @@ class DisplayConfig:
 
 
 @dataclass
+class AudioConfig:
+    enabled: bool = True
+    file_path: str = "assets/crowd_alert.mp3"
+    persist_duration: float = 1.0  # seconds crowd must persist before alert plays
+    cooldown: float = 3.0  # seconds between audio plays
+
+
+@dataclass
 class AppConfig:
     camera: CameraConfig = field(default_factory=CameraConfig)
     detection: DetectionConfig = field(default_factory=DetectionConfig)
     density: DensityConfig = field(default_factory=DensityConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
+    audio: AudioConfig = field(default_factory=AudioConfig)
 
 
 def load_config(config_path: str = "config.yaml") -> AppConfig:
@@ -61,10 +69,12 @@ def load_config(config_path: str = "config.yaml") -> AppConfig:
     det_data = data.get("detection", {})
     density_data = data.get("density", {})
     disp_data = data.get("display", {})
+    audio_data = data.get("audio", {})
 
     return AppConfig(
         camera=CameraConfig(**cam_data),
         detection=DetectionConfig(**det_data),
         density=DensityConfig(**density_data),
         display=DisplayConfig(**disp_data),
+        audio=AudioConfig(**audio_data),
     )

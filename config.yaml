@@ -2,6 +2,7 @@ camera:
   device_index: 0
   width: 1280
   height: 720
+  api_preference: "dshow"
 
 detection:
   model: "yolov8n.pt"
@@ -26,3 +27,9 @@ display:
   line_color: [0, 0, 255]
   text_color: [255, 255, 255]
   badge_color: [40, 40, 40]
+
+audio:
+  enabled: true
+  file_path: "assets/crowd_alert.mp3"
+  persist_duration: 1.0
+  cooldown: 1.0
