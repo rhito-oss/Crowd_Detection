@@ -4,12 +4,7 @@ import time
 import sounddevice as sd
 import soundfile as sf
 
-
 class AudioAlert:
-    """Ultra-low latency audio player using preloaded memory buffers via sounddevice.
-
-    Prevents any overlapping audio and triggers immediately with zero startup delay.
-    """
 
     def __init__(self, audio_file: str, cooldown: float = 2.0):
         self.audio_path = os.path.abspath(audio_file)
@@ -30,7 +25,6 @@ class AudioAlert:
                 print(f"Warning: Failed to preload audio: {e}")
 
     def is_playing(self) -> bool:
-        """Checks if audio is currently playing in sounddevice."""
         try:
             stream = sd.get_stream()
             if stream and stream.active:
@@ -45,19 +39,16 @@ class AudioAlert:
             return
 
         with self._lock:
-            # 1. Prevent overlap: if already playing, do NOT start another instance
             if self.is_playing():
                 return
 
             now = time.time()
-            # 2. Cooldown check based on duration + cooldown
             min_interval = max(self.duration, self.cooldown)
             if now - self.last_played_time < min_interval:
                 return
 
             self.last_played_time = now
             try:
-                # Asynchronously play the in-memory numpy array with 0ms disk/process latency
                 sd.play(self.data, self.samplerate)
             except Exception as e:
                 print(f"Warning: Error during audio playback: {e}")

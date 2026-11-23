@@ -16,7 +16,6 @@ def get_available_camera(preferred_index: int = 0, preferred_api: str = "dshow")
         "any": cv2.CAP_ANY,
     }
 
-    # On Windows, DirectShow (CAP_DSHOW) must be prioritized to avoid MSMF step >= minstep crashes
     if preferred_api.lower() in ("dshow", "default", "any") and sys.platform.startswith("win"):
         api_backends = [cv2.CAP_DSHOW, cv2.CAP_ANY]
     elif preferred_api.lower() in api_map:
@@ -29,7 +28,6 @@ def get_available_camera(preferred_index: int = 0, preferred_api: str = "dshow")
     if cv2.CAP_ANY not in api_backends:
         api_backends.append(cv2.CAP_ANY)
 
-    # Scan available device indices, starting with preferred
     indices = [preferred_index] + [i for i in range(5) if i != preferred_index]
 
     for api in api_backends:
@@ -105,7 +103,6 @@ def main():
             detections = detector.detect(frame)
             density_result = evaluate_density(detections, w, h, config.density)
 
-            # Audio alert with persistence check
             curr_time = time.time()
             if config.audio.enabled and density_result.is_crowded:
                 if crowd_start_time is None:

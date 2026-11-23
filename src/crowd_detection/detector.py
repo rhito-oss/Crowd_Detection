@@ -20,7 +20,6 @@ class PersonDetector:
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.device = device
-        # Load YOLO model (will automatically download weights if not cached)
         self.model = YOLO(model_name)
 
     def detect(self, frame: np.ndarray) -> List[Detection]:

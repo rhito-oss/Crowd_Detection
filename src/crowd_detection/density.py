@@ -73,7 +73,10 @@ def evaluate_density(
                 crowded_indices.add(i)
                 crowded_indices.add(j)
 
-    is_crowded = len(close_pairs) > 0 or len(crowded_indices) >= 2
+    is_crowded = (
+        len(crowded_indices) >= config.min_people_for_crowd
+        and len(close_pairs) >= config.min_close_pairs
+    )
     density_score = len(close_pairs) / (n * (n - 1) / 2.0) if n > 1 else 0.0
 
     return DensityResult(

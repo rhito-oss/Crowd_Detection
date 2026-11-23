@@ -1,4 +1,7 @@
-# Byte-compiled / optimized / DLL files
+# Scratch and test files
+test_*.py
+scratch/
+test_*.ps1
 __pycache__/
 *.py[codz]
 *$py.class

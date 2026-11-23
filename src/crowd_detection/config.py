@@ -44,8 +44,8 @@ class DisplayConfig:
 class AudioConfig:
     enabled: bool = True
     file_path: str = "assets/crowd_alert.mp3"
-    persist_duration: float = 1.0  # seconds crowd must persist before alert plays
-    cooldown: float = 3.0  # seconds between audio plays
+    persist_duration: float = 1.0
+    cooldown: float = 3.0
 
 
 @dataclass
