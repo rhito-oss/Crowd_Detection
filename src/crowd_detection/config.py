@@ -24,7 +24,7 @@ class DensityConfig:
     enabled: bool = True
     min_people_for_crowd: int = 2
     closeness_threshold: float = 0.15
-    min_close_pairs: int = 2
+    min_close_pairs: int = 1
 
 @dataclass
 class DisplayConfig:
@@ -49,18 +49,33 @@ class AudioConfig:
 
 
 @dataclass
+class StampedeConfig:
+    enabled: bool = True
+    min_people: int = 3
+    critical_people: int = 8
+    walking_speed_kmh: float = 4.0
+    panic_speed_kmh: float = 12.0
+    panic_variance_kmh: float = 5.0
+
+
+@dataclass
 class AppConfig:
     camera: CameraConfig = field(default_factory=CameraConfig)
     detection: DetectionConfig = field(default_factory=DetectionConfig)
     density: DensityConfig = field(default_factory=DensityConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
     audio: AudioConfig = field(default_factory=AudioConfig)
+    stampede: StampedeConfig = field(default_factory=StampedeConfig)
 
 
 def load_config(config_path: str = "config.yaml") -> AppConfig:
     path = Path(config_path)
     if not path.is_file():
-        return AppConfig()
+        possible_root = Path(__file__).resolve().parent.parent.parent / config_path
+        if possible_root.is_file():
+            path = possible_root
+        else:
+            return AppConfig()
 
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
@@ -70,6 +85,7 @@ def load_config(config_path: str = "config.yaml") -> AppConfig:
     density_data = data.get("density", {})
     disp_data = data.get("display", {})
     audio_data = data.get("audio", {})
+    stampede_data = data.get("stampede", {})
 
     return AppConfig(
         camera=CameraConfig(**cam_data),
@@ -77,4 +93,5 @@ def load_config(config_path: str = "config.yaml") -> AppConfig:
         density=DensityConfig(**density_data),
         display=DisplayConfig(**disp_data),
         audio=AudioConfig(**audio_data),
+        stampede=StampedeConfig(**stampede_data),
     )

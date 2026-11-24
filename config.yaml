@@ -12,9 +12,9 @@ detection:
 
 density:
   enabled: true
-  min_people_for_crowd: 3
+  min_people_for_crowd: 2
   closeness_threshold: 0.15
-  min_close_pairs: 2
+  min_close_pairs: 1
 
 display:
   window_name: "Crowd Detection"
@@ -31,5 +31,13 @@ display:
 audio:
   enabled: true
   file_path: "assets/crowd_alert.mp3"
-  persist_duration: 1.0
-  cooldown: 1.0
+  persist_duration: 0.0
+  cooldown: 0.0
+
+stampede:
+  enabled: true
+  min_people: 3
+  critical_people: 8
+  walking_speed_kmh: 4.0
+  panic_speed_kmh: 12.0
+  panic_variance_kmh: 5.0

@@ -15,14 +15,9 @@ class AudioAlert:
         self.samplerate = 44100
         self.duration = 0.0
 
-        if os.path.exists(self.audio_path):
-            try:
-                # Preload audio into RAM so playback starts instantaneously
-                self.data, self.samplerate = sf.read(self.audio_path, dtype="float32")
-                self.duration = len(self.data) / float(self.samplerate)
-                print(f"Audio loaded ({self.duration:.1f}s, {self.samplerate}Hz).")
-            except Exception as e:
-                print(f"Warning: Failed to preload audio: {e}")
+        self.data, self.samplerate = sf.read(self.audio_path, dtype="float32")
+        self.duration = len(self.data) / float(self.samplerate)
+        print("Audio loaded")
 
     def is_playing(self) -> bool:
         try:
@@ -34,7 +29,6 @@ class AudioAlert:
         return False
 
     def play(self):
-        """Plays the audio alert immediately if not already playing and cooldown has passed."""
         if self.data is None:
             return
 

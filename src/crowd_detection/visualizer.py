@@ -4,6 +4,7 @@ import numpy as np
 from crowd_detection.config import DisplayConfig
 from crowd_detection.detector import Detection
 from crowd_detection.density import DensityResult
+from crowd_detection.stampede import StampedeRiskResult
 
 
 def draw_hud(
@@ -12,6 +13,8 @@ def draw_hud(
     density_result: DensityResult,
     fps: float,
     config: DisplayConfig,
+    avg_speed: float = 0.0,
+    stampede_result: StampedeRiskResult = None,
 ) -> np.ndarray:
     annotated = frame.copy()
     normal_box_color = tuple(config.box_color)
@@ -79,6 +82,23 @@ def draw_hud(
     if config.show_fps:
         fps_text = f"FPS: {fps:.1f}"
         hud_lines.append((fps_text, text_color))
+
+    avg_speed_text = f"Avg Speed: {avg_speed:.1f} km/h"
+    hud_lines.append((avg_speed_text, (255, 200, 0)))
+
+    if stampede_result is not None:
+        prob_pct = stampede_result.probability * 100.0
+        level = stampede_result.risk_level
+        # Color coding: Green (LOW), Amber/Yellow (MODERATE), Red (HIGH/CRITICAL)
+        if level == "LOW":
+            risk_color = (0, 255, 0)
+        elif level == "MODERATE":
+            risk_color = (0, 255, 255)
+        else:
+            risk_color = (0, 0, 255)
+
+        stampede_text = f"Stampede Risk: {prob_pct:.1f}% ({level})"
+        hud_lines.append((stampede_text, risk_color))
 
     if hud_lines:
         margin = 15

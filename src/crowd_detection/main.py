@@ -6,6 +6,7 @@ from crowd_detection.audio import AudioAlert
 from crowd_detection.config import load_config
 from crowd_detection.density import evaluate_density
 from crowd_detection.detector import PersonDetector
+from crowd_detection.stampede import calculate_stampede_probability
 from crowd_detection.visualizer import draw_hud
 
 
@@ -100,10 +101,16 @@ def main():
                 continue
 
             h, w = frame.shape[:2]
-            detections = detector.detect(frame)
-            density_result = evaluate_density(detections, w, h, config.density)
-
             curr_time = time.time()
+            detections, avg_speed = detector.detect(frame, timestamp=curr_time)
+            density_result = evaluate_density(detections, w, h, config.density)
+            stampede_result = calculate_stampede_probability(
+                detections=detections,
+                density_result=density_result,
+                avg_speed_kmh=avg_speed,
+                config=config.stampede,
+            )
+
             if config.audio.enabled and density_result.is_crowded:
                 if crowd_start_time is None:
                     crowd_start_time = curr_time
@@ -117,7 +124,15 @@ def main():
                 fps = 0.9 * fps + 0.1 * (1.0 / time_diff) if fps > 0 else (1.0 / time_diff)
             prev_time = curr_time
 
-            display_frame = draw_hud(frame, detections, density_result, fps, config.display)
+            display_frame = draw_hud(
+                frame,
+                detections,
+                density_result,
+                fps,
+                config.display,
+                avg_speed=avg_speed,
+                stampede_result=stampede_result,
+            )
 
             cv2.imshow(window_name, display_frame)
 
