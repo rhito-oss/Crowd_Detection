@@ -42,7 +42,8 @@ def draw_hud(
         )
 
         status_tag = " [CLOSE]" if idx in density_result.crowded_indices else ""
-        label = f"Person {det.confidence:.0%}{status_tag}" if config.show_conf else f"Person{status_tag}"
+        speed_tag = f" {det.speed:.1f}km/h" if det.speed is not None else ""
+        label = f"Person {det.confidence:.0%}{speed_tag}{status_tag}" if config.show_conf else f"Person{speed_tag}{status_tag}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.5
         thickness = 1
